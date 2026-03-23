@@ -1,3 +1,6 @@
+# Data files (download via: python download_data.py)
+datas/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

@@ -4,3 +4,4 @@ pandas
 pydicom
 jupyterlab
 opencv-python
+kaggle
