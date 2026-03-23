@@ -1,6 +1,10 @@
 numpy
 scikit-learn
-pandas
-pydicom
-jupyterlab
 opencv-python
+pandas
+numpy
+scikit-learn
+torch
+pydicom
+opencv-python-headless
+kaggle

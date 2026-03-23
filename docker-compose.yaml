@@ -4,11 +4,13 @@ services:
   ai:
     build: .
     volumes:
-      - ${HOST_DATA_DIR}:/app/data
+      - ./app:/app
+      - ./data:/app/data
+      - ~/.kaggle:/root/.kaggle
     deploy:
       resources:
         reservations:
-          devices:
+           devices:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
