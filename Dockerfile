@@ -1,4 +1,5 @@
 FROM pytorch/pytorch:2.8.0-cuda12.6-cudnn9-runtime
+
 WORKDIR /app
 
 COPY requirements.txt .
@@ -21,9 +22,7 @@ RUN apt-get update && \
 
 RUN pip install -r requirements.txt --no-cache-dir
 
-COPY app/ /app/
+ENV PYTHONPATH=/app/app:/app
 
-COPY run.sh /run.sh
-RUN chmod +x /run.sh
-
-CMD ["/run.sh"]
+WORKDIR /app/app
+CMD ["python", "main.py"]

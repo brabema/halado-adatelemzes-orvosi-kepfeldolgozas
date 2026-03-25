@@ -4,13 +4,9 @@ services:
   ai:
     build: .
     volumes:
-      - ./app:/app
-      - ./data:/app/data
-      - ~/.kaggle:/root/.kaggle
-    deploy:
-      resources:
-        reservations:
-           devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+      - ./app:/app/app
+      - ./scripts:/app/scripts
+      - ./notebook:/app/notebook
+      - ./datas:/app/datas
+      # Optional: mount Kaggle credentials for automatic download
+      # - ~/.kaggle:/root/.kaggle
