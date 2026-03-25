@@ -1,4 +1,5 @@
 FROM pytorch/pytorch:2.8.0-cuda12.6-cudnn9-runtime
+WORKDIR /app
 
 COPY requirements.txt .
 
@@ -18,9 +19,11 @@ RUN apt-get update && \
         git \
     && rm -rf /var/lib/apt/lists/*
 
-# Alapvető adatfeldolgozó csomagok és JupyterLab telepítése egy lépésben
 RUN pip install -r requirements.txt --no-cache-dir
 
-EXPOSE 8888
+COPY app/ /app/
 
-CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]
+COPY run.sh /run.sh
+RUN chmod +x /run.sh
+
+CMD ["/run.sh"]

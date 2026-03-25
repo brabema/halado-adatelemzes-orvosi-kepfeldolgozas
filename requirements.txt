@@ -1,7 +1,8 @@
 numpy
 scikit-learn
 pandas
+torch
 pydicom
 jupyterlab
-opencv-python
+opencv-python-headless
 kaggle
