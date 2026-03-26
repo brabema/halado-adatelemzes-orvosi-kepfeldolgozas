@@ -6,3 +6,4 @@ pydicom
 jupyterlab
 opencv-python-headless
 kaggle
+plotly
