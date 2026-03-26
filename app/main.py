@@ -9,8 +9,9 @@ from download_data import main as download_data
 
 
 def main():
-    csv_path = "/app/data/train.csv"
-    image_dir = "/app/data/train"
+    data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "datas")
+    csv_path = os.path.join(data_dir, "train.csv")
+    image_dir = os.path.join(data_dir, "jpg_1024")
 
     download_data()
 

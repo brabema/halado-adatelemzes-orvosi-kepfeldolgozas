@@ -18,11 +18,13 @@ RUN apt-get update && \
         libxcb-render0 \
         libxcb-shm0 \
         git \
+        unzip \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install -r requirements.txt --no-cache-dir
 
 ENV PYTHONPATH=/app/app:/app
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app/app
 CMD ["python", "main.py"]
