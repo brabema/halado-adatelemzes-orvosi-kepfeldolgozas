@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   ai:
     build: .
@@ -10,3 +8,13 @@ services:
       - ./datas:/app/datas
       # Optional: mount Kaggle credentials for automatic download
       # - ~/.kaggle:/root/.kaggle
+
+  dashboard:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./app:/app/app
+      - ./datas:/app/datas
+    working_dir: /app
+    command: ["streamlit", "run", "app/dashboard.py", "--server.address=0.0.0.0", "--server.headless=true"]
