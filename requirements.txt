@@ -7,3 +7,5 @@ jupyterlab
 opencv-python-headless
 kaggle
 plotly
+albumentations
+streamlit

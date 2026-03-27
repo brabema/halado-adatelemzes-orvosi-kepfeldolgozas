@@ -25,6 +25,7 @@ def prepare_dataframe(csv_path):
         'Other_finding': 'max'
     }).reset_index()
 
+    total_images = len(grouped)
     grouped['target_sum'] = grouped[TARGET_FINDINGS].sum(axis=1)
 
     valid_mask = ~(
@@ -33,7 +34,11 @@ def prepare_dataframe(csv_path):
     )
 
     clean_df = grouped[valid_mask].copy()
+    removed = total_images - len(clean_df)
     clean_df = clean_df.drop(columns=['Other_finding', 'target_sum'])
+
+    print(f"  Eredeti képek: {total_images}")
+    print(f"  Szűrés után: {len(clean_df)} (törölve: {removed})")
 
     return clean_df
 
