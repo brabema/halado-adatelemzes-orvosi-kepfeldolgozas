@@ -9,3 +9,4 @@ kaggle
 plotly
 albumentations
 streamlit
+mlflow

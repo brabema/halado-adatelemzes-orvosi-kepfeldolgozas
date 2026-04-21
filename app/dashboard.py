@@ -87,7 +87,7 @@ with col2:
 with col3:
     use_brightness = st.checkbox("Brightness/Contrast", value=True)
 
-train_transforms = get_train_transforms(flip=use_flip, rotate=use_rotate, brightness=use_brightness)
+train_transforms = get_train_transforms(shift=True, scale=True, rotate=True, brightness=True)
 
 sample_idx = st.slider("Kép index (train halmazból)", 0, len(train_df) - 1, 0)
 image_id = train_df.iloc[sample_idx]['image_id']
