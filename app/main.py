@@ -1,5 +1,6 @@
 import os
 import sys
+from itertools import product
 
 from data_preprocessing import prepare_dataframe, split_data, TARGET_FINDINGS
 from dataset import VinBigDataDataset
@@ -9,13 +10,12 @@ import mlflow
 import torch
 from training import train_model
 from evaluation import evaluate
-
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
 #from download_data import main as download_data
 
 
 def main():
-    mlflow.set_tracking_uri("http://mlflow:5000")
+    mlflow.set_tracking_uri("http://localhost:5000")
     mlflow.set_experiment("vinbigdata-classification")
 
     data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "datas")
@@ -52,17 +52,30 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     print("Starting training...")
-    model = train_model(train_ds, valid_ds, device=device)
 
-    print("Final evaluation on test set...")
-    test_loader = DataLoader(test_ds, batch_size=16, shuffle=False, num_workers=0, pin_memory=True)
+    search_space = {
+        "model": ["resnet50", "densenet121"],
+        "epochs": [10, 30, 50, 100, 200],
+        "dropout": [0.0, 0.1, 0.3],
+        "data_fraction": [0.01, 0.05, 0.1, 0.25, 0.5, 1.0],
+        "seed": [42],
+        "batch_size": [32],
+        "lr": [1e-4]
+    }
+    
+    keys = search_space.keys()
+    configs = [dict(zip(keys, values)) for values in product(*search_space.values())]
 
-    test_auc = evaluate(model, test_loader, device, log_prefix="test")
-    print(f"Test AUC: {test_auc:.4f}")
+    for cfg in configs:
+        model = train_model(train_ds, valid_ds, device=device)
 
+        print("Final evaluation on test set...")
+        test_loader = DataLoader(test_ds, batch_size=16, shuffle=False, num_workers=0, pin_memory=True)
+
+        test_auc = evaluate(model, test_loader, device, log_prefix="test")
+        print(f"Test AUC: {test_auc:.4f}")
 
     print("Done.")
-
 
 if __name__ == "__main__":
     main()

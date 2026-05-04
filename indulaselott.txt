@@ -1,0 +1,5 @@
+module load singularity
+singularity exec --nv --env OMP_NUM_THREADS=4 --bind /home/nr_hasb/nr_haml2025/halado-adatelemzes-orvosi-kepfeldolgozas/:/home/$USER/workspace /home/nr_hasb/nr_haml2025/halado-adatelemzes-orvosi-kepfeldolgozas/haokimage.sif /bin/bash
+cd workspace
+python src/main.py
+
