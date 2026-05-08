@@ -55,26 +55,28 @@ def main():
 
     search_space = {
         "model": ["resnet50", "densenet121"],
-        "epochs": [10, 30, 50, 100, 200],
+        "epoch": [200],
         "dropout": [0.0, 0.1, 0.3],
         "data_fraction": [0.01, 0.05, 0.1, 0.25, 0.5, 1.0],
         "seed": [42],
         "batch_size": [32],
-        "lr": [1e-4]
+        "lr": [1e-4],
+        "wd": [1e-4]
     }
     
     keys = search_space.keys()
     configs = [dict(zip(keys, values)) for values in product(*search_space.values())]
 
     for cfg in configs:
-        model = train_model(train_ds, valid_ds, device=device)
+        with mlflow.start_run():
+            model = train_model(train_ds, valid_ds, cfg, device=device)
 
-        print("Final evaluation on test set...")
-        test_loader = DataLoader(test_ds, batch_size=16, shuffle=False, num_workers=0, pin_memory=True)
+            print("Final evaluation on test set...")
+            test_loader = DataLoader(test_ds, batch_size=16, shuffle=False, num_workers=0, pin_memory=True)
 
-        test_auc = evaluate(model, test_loader, device, log_prefix="test")
-        print(f"Test AUC: {test_auc:.4f}")
-
+            test_auc = evaluate(model, test_loader, device, log_prefix="test")
+            print(f"Test AUC: {test_auc:.4f}")
+            
     print("Done.")
 
 if __name__ == "__main__":

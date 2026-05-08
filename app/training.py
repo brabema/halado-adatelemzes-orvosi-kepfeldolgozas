@@ -7,6 +7,8 @@ import mlflow
 import mlflow.pytorch
 import os
 from evaluation import evaluate
+import numpy as np
+import random
 
 def set_seed(seed):
     torch.manual_seed(seed)
@@ -34,78 +36,79 @@ def build_model(model_name="resnet50", num_classes=5, dropout=0.0):
 
     return model
     
-def train_model(train_ds, valid_ds, device="cuda", config):
+def train_model(train_ds, valid_ds, config, device="cuda"):
     set_seed(config["seed"])
     
-    with mlflow.start_run():
-        mlflow.log_params(config)
+    mlflow.log_params(config)
 
-        model = build_model(
-            model_name=config["model"],
-            dropout=config["dropout"]
-        ).to(device)
+    model = build_model(
+        model_name=config["model"],
+        dropout=config["dropout"]
+    ).to(device)
 
-        subset_size = int(len(train_ds) * config["data_fraction"])
-        train_ds = torch.utils.data.Subset(train_ds, range(subset_size))
+    subset_size = int(len(train_ds) * config["data_fraction"])
+    train_ds = torch.utils.data.Subset(train_ds, range(subset_size))
 
-        train_loader = DataLoader(
-            train_ds,
-            batch_size=config["batch_size"],
-            shuffle=True,
-            num_workers=8,
-            pin_memory=True
-        )
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=config["batch_size"],
+        shuffle=True,
+        num_workers=8,
+        pin_memory=True
+    )
 
-        valid_loader = DataLoader(
-            valid_ds, 
-            batch_size=config["batch_size"], 
-            shuffle=False, 
-            num_workers=8, 
-            pin_memory=True
-        )
+    valid_loader = DataLoader(
+        valid_ds, 
+        batch_size=config["batch_size"], 
+        shuffle=False, 
+        num_workers=8, 
+        pin_memory=True
+    )
 
+    criterion = nn.BCEWithLogitsLoss()
+    optimizer = optim.Adam(model.parameters(), lr=config["lr"], weight_decay=config["wd"])
 
-        model = build_model(modelName)
-        model = model.to(device)
+    best_auc = 0.0
 
-        criterion = nn.BCEWithLogitsLoss()
-        optimizer = optim.Adam(model.parameters(), lr=config["lr"])
+    for epoch in range(config["epoch"]):
+        model.train()
+        running_loss = 0.0
 
-        best_auc = 0.0
+        for images, labels in train_loader:
+            images = images.to(device)
+            labels = labels.to(device)
 
-        for epoch in range(config["epochs"]):
-            model.train()
-            running_loss = 0.0
+            outputs = model(images)
+            loss = criterion(outputs, labels)
 
-            for images, labels in train_loader:
-                images = images.to(device)
-                labels = labels.to(device)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-                outputs = model(images)
-                loss = criterion(outputs, labels)
+            running_loss += loss.item()
 
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+        avg_loss = running_loss / len(train_loader)
 
-                running_loss += loss.item()
+        val_auc = evaluate(model, valid_loader, device)
 
-            avg_loss = running_loss / len(train_loader)
+        print(f"[Epoch {epoch+1}] Loss: {avg_loss:.4f} | Val AUC: {val_auc:.4f}")
 
-            val_auc = evaluate(model, valid_loader, device)
+        mlflow.log_metric("train_loss", avg_loss, step=epoch)
+        mlflow.log_metric("val_auc", val_auc, step=epoch)
 
-            print(f"[Epoch {epoch+1}] Loss: {avg_loss:.4f} | Val AUC: {val_auc:.4f}")
+        save_path = f"./checkpoints/{config['model']}"
+        if (epoch+1) in [10, 30, 50, 100, 200]:
+            filename = f"seed{config['seed']}_dropout{config['dropout']}_lr{config['lr']}_wd{config['wd']}_dataFraction{config['data_fraction']}_epoch_{epoch}.pt"
+            os.makedirs(save_path, exist_ok=True)
+            torch.save(model.state_dict(), os.path.join(save_path, filename))
 
-            mlflow.log_metric("train_loss", avg_loss, step=epoch)
-            mlflow.log_metric("val_auc", val_auc, step=epoch)
+        if val_auc > best_auc:
+            filename = f"seed{config['seed']}_dropout{config['dropout']}_lr{config['lr']}_wd{config['wd']}_dataFraction{config['data_fraction']}_bestModel.pt"
+            best_auc = val_auc
+            print(f"Saving the best model, the acc: {best_auc}")
+            os.makedirs(save_path, exist_ok=True)
+            torch.save(model.state_dict(), os.path.join(save_path, filename))
 
-            if val_auc > best_auc:
-                best_auc = val_auc
-                print(f"Saving the best model, the acc: {best_auc}")
-                save_path = "./checkpoints"
-                os.makedirs(os.path.dirname(save_path), exist_ok=True)
-                torch.save(model.state_dict(), "best_model.pt")
-
-        mlflow.pytorch.log_model(model, "model")
+    mlflow.pytorch.log_model(model, "model")
 
     return model

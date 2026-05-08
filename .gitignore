@@ -211,6 +211,12 @@ __marimo__/
 
 mlflow/
 
-containers
+containers/
 
-shScripts
+shScripts/
+
+logs/
+
+checkpoints/
+
+slurm-*

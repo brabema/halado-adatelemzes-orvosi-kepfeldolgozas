@@ -15,7 +15,6 @@ def evaluate(model, dataloader, device="cuda", log_prefix=None):
 
             outputs = model(images)
             probs = torch.sigmoid(outputs)
-
             all_preds.append(probs.cpu())
             all_targets.append(labels)
 
